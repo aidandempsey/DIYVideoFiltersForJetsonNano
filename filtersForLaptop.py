@@ -7,9 +7,8 @@ def backgroundBlur(videoInput):
     # stub code
     print('running background blur filter')
 
-    # First need to detect face from input videoStream / frame from video
 
-    cv2.blur()
+
     return
 
 def backgroundReplacement(videoInput):
