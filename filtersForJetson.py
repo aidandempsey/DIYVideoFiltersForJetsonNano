@@ -1,15 +1,45 @@
 import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+import time
 
-""" 
-gstreamer_pipeline returns a GStreamer pipeline for capturing from the CSI camera
-Flip the image by setting the flip_method (most common values: 0 and 2)
-display_width and display_height determine the size of each camera pane in the window on the screen
-Default 1920x1080 displayd in a 1/4 size window
-"""
+
+def backgroundBlur(videoInput):
+    #stub code
+    print('running background blur filter')
+
+
+    #First need to detect face from input videoStream / frame from video
+    #What we are working with depends on our implementation
+    #Do we want to feed in raw camera input to each function and process this, or use main loop to chop up video and
+    #send individual frames to each function?
+
+
+
+def backgroundReplacement(videoInput):
+    #stub code
+    True
+
+    #Can use largely similar functions as above in initial stages of pipline, i.e. separating face out
+    # then instead of blur we replace with our own background
+
+
+
+def faceDistortion(videoInput):
+    #stub code
+    True
+
+def faceFilter(videoInput):
+    #stub code
+    True
+
+def ourIdea(videoInput):
+    #stub code
+    True
 
 def gstreamer_pipeline(
     sensor_id=0,
-    capture_width=1920,
+    capture_width=1920,     #Think we can adjust these parameters and lower input video quality if methods are running very badly and fix can't be found
     capture_height=1080,
     display_width=960,
     display_height=540,
@@ -33,12 +63,8 @@ def gstreamer_pipeline(
             display_height,
         )
     )
-
-
-def show_camera():
-    window_title = "CSI Camera"
-
-    # To flip the image, modify the flip_method parameter (0 and 2 are the most common)
+def show_camera(filterType):
+    window_title = "Aidan and Sean Filter Output"
     print(gstreamer_pipeline(flip_method=0))
     video_capture = cv2.VideoCapture(gstreamer_pipeline(flip_method=0), cv2.CAP_GSTREAMER)
     if video_capture.isOpened():
@@ -46,6 +72,22 @@ def show_camera():
             window_handle = cv2.namedWindow(window_title, cv2.WINDOW_AUTOSIZE)
             while True:
                 ret_val, frame = video_capture.read()
+
+                if filterType == 'backgroundBlur':
+                    backgroundBlur(frame)
+                elif filterType == 'backgroundReplace':
+                    backgroundReplacement(frame)
+                elif filterType == 'faceDistortion':
+                    faceDistortion(frame)
+                elif filterType == 'faceFilter':
+                    faceFilter(frame)
+                elif filterType == 'ourIdea':
+                    ourIdea(frame)
+
+
+
+
+
                 # Check to see if the user closed the window
                 # Under GTK+ (Jetson Default), WND_PROP_VISIBLE does not work correctly. Under Qt it does
                 # GTK - Substitute WND_PROP_AUTOSIZE to detect if window has been closed by user
@@ -64,5 +106,11 @@ def show_camera():
         print("Error: Unable to open camera")
 
 
-if __name__ == "__main__":
-    show_camera()
+if __name__ == '__main__':
+
+    # print('Aidan and Sean are sound men')
+
+    filterType = input('Enter filter type: \n')
+
+    show_camera(filterType)
+
