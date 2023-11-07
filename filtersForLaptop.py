@@ -7,7 +7,7 @@ current_filter = None
 
 def backgroundBlur(videoInput):
     # stub code
-    return cv2.GaussianBlur(videoInput, (15, 15), 0)
+    return videoInput
 
 def backgroundReplacement(videoInput):
     # stub code
@@ -15,25 +15,25 @@ def backgroundReplacement(videoInput):
 
     # Can use largely similar functions as above in initial stages of pipline, i.e. separating face out
     # then instead of blur we replace with our own background
-    return videoInput
+    return cv2.GaussianBlur(videoInput, (15, 15), 1)
 
 def faceDistortion(videoInput):
     # stub code
 
 
-    return videoInput
+    return cv2.GaussianBlur(videoInput, (15, 15), 2)
 
 def faceFilter(videoInput):
     # stub code
 
 
-    return videoInput
+    return cv2.GaussianBlur(videoInput, (15, 15), 3)
 
 def ourIdea(videoInput):
     # stub code
 
 
-    return videoInput
+    return cv2.GaussianBlur(videoInput, (15, 15), 4)
 
 def gstreamer_pipeline(
         capture_width=1920,
@@ -78,8 +78,15 @@ def create_buttons(frame):
     button_names = ['Blur', 'Replace', 'Distort', 'Filter', 'Custom']
 
     for pos, name in zip(button_positions, button_names):
-        cv2.rectangle(frame, (pos[0], pos[1]), (pos[2], pos[3]), (0, 0, 255), -1)
-        cv2.putText(frame, name, (pos[0] + 10, pos[1] + 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        # Create a rounded rectangle for the button with a slight shadow
+        cv2.rectangle(frame, (pos[0], pos[1]), (pos[2], pos[3]), (220, 220, 220), -1)
+        cv2.rectangle(frame, (pos[0] + 3, pos[1] + 3), (pos[2] + 3, pos[3] + 3), (200, 200, 200), -1)
+        cv2.rectangle(frame, (pos[0], pos[1]), (pos[2], pos[3]), (0, 0, 0), 2, lineType=cv2.LINE_AA, shift=0)
+
+        # Add text label
+        cv2.putText(frame, name, (pos[0] + 15, pos[1] + 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+
+    return frame
 
 def show_camera():
     window_title = "Aidan and Sean Filter Output"
