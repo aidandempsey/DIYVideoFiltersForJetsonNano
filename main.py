@@ -1,6 +1,6 @@
 import cv2
 import tkinter as tk
-from tkinter import Button, Scale  # Import the Scale widget
+from tkinter import Button, Scale, HORIZONTAL  # Import the Scale widget and HORIZONTAL orientation
 from PIL import Image, ImageTk
 import numpy as np
 
@@ -52,7 +52,10 @@ def on_button_click(filter_name):
     current_filter = filter_name
 
     if filter_name == "Blur":
+        blur_slider.pack()  # Show the slider when "Blur" is selected
         blur_slider.set(3)  # Set the initial blur level when "Blur" is selected
+    else:
+        blur_slider.pack_forget()  # Hide the slider when a different filter is selected
 
     # Update the button appearance based on the current filter
     update_button_appearance()
@@ -93,12 +96,9 @@ def createGuiAndCaptureVideo():
     canvas.pack()
     canvas.configure(bg="#333333")
 
-    # Calculate the new button frame height (increased by 50%)
-    new_button_frame_height = int(60 * 1.5)
-
     # Create a row of buttons with an increased font size
     buttonFrame = tk.Frame(root)
-    buttonFrame.pack(side=tk.BOTTOM, pady=new_button_frame_height // 2)  # Reduce the pady value for a smaller button frame
+    buttonFrame.pack(side=tk.BOTTOM, pady=0)  # No padding for buttons frame
 
     global button_dict  # Make button_dict global
     button_dict = {}  # A dictionary to store button references
@@ -116,19 +116,12 @@ def createGuiAndCaptureVideo():
 
     # Create buttons for each filter with a larger font size
     for filter_name, filter_func in filters:
-        if filter_name == "Blur":
-            button = Button(buttonFrame, text=filter_name, command=lambda name=filter_name: on_button_click(name), bg="#555555", fg="#19c37d", font=("Helvetica", 16))
-        else:
-            button = Button(buttonFrame, text=filter_name, command=lambda name=filter_name: on_button_click(name), bg="#555555", fg="#19c37d", font=("Helvetica", 16))
-        button.pack(side=tk.LEFT)
+        button = Button(buttonFrame, text=filter_name, command=lambda name=filter_name: on_button_click(name), bg="#555555", fg="#19c37d", font=("Helvetica", 16))
+        button.pack(side=tk.LEFT, expand=True)
         button_dict[filter_name] = button
 
     # Create the blur slider with 6 discrete increments
-    blur_slider = Scale(buttonFrame, from_=1, to=5, orient=tk.HORIZONTAL, length=new_width, sliderlength=20, label="Blur Level", font=("Helvetica", 10), resolution=1)
-    blur_slider.pack(side=tk.BOTTOM)
-
-    # Set the default value to 3
-    blur_slider.set(3)
+    blur_slider = Scale(root, from_=1, to=5, orient=HORIZONTAL, length=new_width, sliderlength=20, showvalue=0, resolution=1)
 
     # Set the initial filter to "Normal"
     on_button_click("Normal")
