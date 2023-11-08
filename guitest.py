@@ -52,7 +52,7 @@ def on_button_click(filter_name):
     current_filter = filter_name
 
     if filter_name == "Blur":
-        blur_slider.set(30)  # Set the initial blur level when "Blur" is selected
+        blur_slider.set(3)  # Set the initial blur level when "Blur" is selected
 
     # Update the button appearance based on the current filter
     update_button_appearance()
@@ -123,9 +123,12 @@ def createGuiAndCaptureVideo():
         button.pack(side=tk.LEFT)
         button_dict[filter_name] = button
 
-    # Create the blur slider
-    blur_slider = Scale(buttonFrame, from_=1, to=100, orient=tk.HORIZONTAL, length=new_width, sliderlength=20, label="Blur Level", font=("Helvetica", 10))
+    # Create the blur slider with 6 discrete increments
+    blur_slider = Scale(buttonFrame, from_=1, to=5, orient=tk.HORIZONTAL, length=new_width, sliderlength=20, label="Blur Level", font=("Helvetica", 10), resolution=1)
     blur_slider.pack(side=tk.BOTTOM)
+
+    # Set the default value to 3
+    blur_slider.set(3)
 
     # Set the initial filter to "Normal"
     on_button_click("Normal")
