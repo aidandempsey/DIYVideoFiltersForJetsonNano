@@ -1,13 +1,13 @@
 import cv2
 import tkinter as tk
-from tkinter import Button
+from tkinter import Button, Scale  # Import the Scale widget
 from PIL import Image, ImageTk
 import numpy as np
 
 current_filter = "Normal"  # Set the initial filter state to "Normal"
 filters = []
 
-def backgroundBlur(videoInput):
+def backgroundBlur(videoInput, blur_level):
     # Load a pre-trained Haar Cascade classifier for face detection
     face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
@@ -24,8 +24,8 @@ def backgroundBlur(videoInput):
         # Create a rectangular mask for each detected face
         cv2.rectangle(mask, (x, y), (x + w, y + h), (0, 0, 0), -1)
 
-    # Apply Gaussian blur to the background
-    blurred_background = cv2.GaussianBlur(videoInput, (15, 15), 30)
+    # Apply Gaussian blur to the background with the specified level
+    blurred_background = cv2.GaussianBlur(videoInput, (15, 15), blur_level)
 
     # Combine the blurred background with the sharp face and body using the mask
     result = cv2.bitwise_and(blurred_background, mask) + cv2.bitwise_and(videoInput, 255 - mask)
@@ -51,6 +51,9 @@ def on_button_click(filter_name):
     global current_filter
     current_filter = filter_name
 
+    if filter_name == "Blur":
+        blur_slider.set(30)  # Set the initial blur level when "Blur" is selected
+
     # Update the button appearance based on the current filter
     update_button_appearance()
 
@@ -66,6 +69,10 @@ def update_button_appearance():
 
 # Function to create the GUI and capture video
 def createGuiAndCaptureVideo():
+    global blur_slider  # Declare blur_slider as a global variable
+
+    blur_slider = None  # Initialize blur_slider to None
+
     videoCapture = cv2.VideoCapture(0)  # 0 represents the default camera (you can change it as needed)
 
     # Original canvas dimensions
@@ -109,12 +116,19 @@ def createGuiAndCaptureVideo():
 
     # Create buttons for each filter with a larger font size
     for filter_name, filter_func in filters:
-        button = Button(buttonFrame, text=filter_name, command=lambda name=filter_name: on_button_click(name), bg="#555555", fg="#19c37d", font=("Helvetica", 16))
+        if filter_name == "Blur":
+            button = Button(buttonFrame, text=filter_name, command=lambda name=filter_name: on_button_click(name), bg="#555555", fg="#19c37d", font=("Helvetica", 16))
+        else:
+            button = Button(buttonFrame, text=filter_name, command=lambda name=filter_name: on_button_click(name), bg="#555555", fg="#19c37d", font=("Helvetica", 16))
         button.pack(side=tk.LEFT)
         button_dict[filter_name] = button
 
-    # Update the button appearance based on the current filter (initiate the "Normal" state)
-    update_button_appearance()
+    # Create the blur slider
+    blur_slider = Scale(buttonFrame, from_=1, to=100, orient=tk.HORIZONTAL, length=new_width, sliderlength=20, label="Blur Level", font=("Helvetica", 10))
+    blur_slider.pack(side=tk.BOTTOM)
+
+    # Set the initial filter to "Normal"
+    on_button_click("Normal")
 
     while True:
         ret, frame = videoCapture.read()  # Read a frame from the camera
@@ -122,7 +136,10 @@ def createGuiAndCaptureVideo():
             break
 
         # Apply the selected filter to the frame
-        if current_filter:
+        if current_filter == "Blur":
+            blur_level = blur_slider.get()  # Get the blur level from the slider
+            frame = filters[next(i for i, (name, _) in enumerate(filters) if name == current_filter)][1](frame, blur_level)
+        else:
             frame = filters[next(i for i, (name, _) in enumerate(filters) if name == current_filter)][1](frame)
 
         # Resize the frame to fit the canvas size (50% bigger)
