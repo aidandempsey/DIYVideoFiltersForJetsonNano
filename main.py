@@ -1,7 +1,10 @@
 import cv2
+<<<<<<< HEAD
 import tkinter as tk
 from PIL import Image, ImageTk
 import numpy as np
+=======
+>>>>>>> origin/Test-Branch-Aidan
 
 def gstreamer_pipeline(
     capture_width=1920,
@@ -29,6 +32,7 @@ def gstreamer_pipeline(
         )
     )
 
+<<<<<<< HEAD
 class VideoProcessor:
     def __init__(self, master):
         self.master = master
@@ -131,3 +135,39 @@ def main():
 if __name__ == "__main__":
     main()
 
+=======
+
+def get_video():
+    window_title = "Aidan + Sean"
+    cascade = cv2.CascadeClassifier("./haarcascade_cuda/haarcascade_upperbody.xml")
+    video_capture = cv2.VideoCapture(gstreamer_pipeline(), cv2.CAP_GSTREAMER)
+    if video_capture.isOpened():
+        try:
+            cv2.namedWindow(window_title, cv2.WINDOW_AUTOSIZE)
+            while True:
+                ret, frame = video_capture.read()
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                rects = cascade.detectMultiScale(gray)
+                #for (x, y, w, h) in rects:
+                #            cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+                #            roi_gray = gray[y : y + h, x : x + w]
+                #            roi_color = frame[y : y + h, x : x + w]
+
+                if cv2.getWindowProperty(window_title, cv2.WND_PROP_AUTOSIZE) >= 0:
+                    cv2.imshow(window_title, frame)
+                else:
+                    break
+                keyCode = cv2.waitKey(10) & 0xFF
+                # Stop the program on the ESC key or 'q'
+                if keyCode == 27 or keyCode == ord('q'):
+                    break
+        finally:
+            video_capture.release()
+            cv2.destroyAllWindows()
+    else:
+        print("Unable to open camera")
+
+
+if __name__ == "__main__":
+    get_video()
+>>>>>>> origin/Test-Branch-Aidan
