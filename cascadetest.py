@@ -1,10 +1,10 @@
 import cv2
 
 def gstreamer_pipeline(
-    capture_width=1920,
-    capture_height=1080,
-    display_width=960,
-    display_height=540,
+    capture_width=640,
+    capture_height=480,
+    display_width=640,
+    display_height=480,
     framerate=30,
     flip_method=2,
 ):
@@ -28,9 +28,13 @@ def gstreamer_pipeline(
 
 def face_and_upperbody_detect():
     window_title = "Face and Upper Body Detect"
-    face_cascade = cv2.CascadeClassifier("/usr/share/opencv4/haarcascades/haarcascade_frontalface_default.xml")
-    eye_cascade = cv2.CascadeClassifier("/usr/share/opencv4/haarcascades/haarcascade_eye.xml")
-    upper_body_cascade = cv2.CascadeClassifier("./haarcascades_cuda/haarcascade_upperbody.xml")
+    # face_cascade = cv2.CascadeClassifier("/usr/share/opencv4/haarcascades/haarcascade_frontalface_default.xml")
+    # eye_cascade = cv2.CascadeClassifier("/usr/share/opencv4/haarcascades/haarcascade_eye.xml")
+    # upper_body_cascade = cv2.CascadeClassifier("./haarcascades_cuda/haarcascade_upperbody.xml")
+
+    face_cascade = cv2.cuda_CascadeClassifier.create("./haarcascades_cuda/haarcascade_profileface.xml")
+    # eye_cascade = cv2.cuda_CascadeClassifier.create("/usr/share/opencv4/haarcascades/haarcascade_eye.xml")
+    # upper_body_cascade = cv2.cuda_CascadeClassifier.create("./haarcascades_cuda/haarcascade_upperbody.xml")
 
     video_capture = cv2.VideoCapture(gstreamer_pipeline(), cv2.CAP_GSTREAMER)
 
@@ -42,19 +46,25 @@ def face_and_upperbody_detect():
                 ret, frame = video_capture.read()
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-                faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-                upper_bodies = upper_body_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+                mat = cv2.cuda_GpuMat(gray)
+                # mat.upload(gray)
 
-                for (x, y, w, h) in faces:
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
-                    roi_gray = gray[y : y + h, x : x + w]
-                    roi_color = frame[y : y + h, x : x + w]
-                    eyes = eye_cascade.detectMultiScale(roi_gray)
-                    for (ex, ey, ew, eh) in eyes:
-                        cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
+                faces = face_cascade.detectMultiScale(mat).download
+                if faces is not None:
+                    print(faces)
+                    cv2.imshow('woo', faces)
+                #upper_bodies = upper_body_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+                #faces = faces.download()
+                # for (x, y, w, h) in faces:
+                #     cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+                #     roi_gray = gray[y : y + h, x : x + w]
+                #     roi_color = frame[y : y + h, x : x + w]
+                    #eyes = eye_cascade.detectMultiScale(roi_gray)
+                #     for (ex, ey, ew, eh) in eyes:
+                #         cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
 
-                for (x, y, w, h) in upper_bodies:
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                # for (x, y, w, h) in upper_bodies:
+                #     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
                 # Check to see if the user closed the window
                 if cv2.getWindowProperty(window_title, cv2.WND_PROP_AUTOSIZE) >= 0:
