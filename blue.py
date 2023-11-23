@@ -27,7 +27,7 @@ def gstreamer_pipeline(
     )
 
 def face_and_upperbody_detect():
-    window_title = "Face and Upper Body Detect"
+    window_title = "Sean + Aidan"
     upper_body_cascade = cv2.CascadeClassifier("./haarcascades_cuda/haarcascade_mcs_upperbody.xml")
 
     video_capture = cv2.VideoCapture(gstreamer_pipeline(), cv2.CAP_GSTREAMER)
@@ -39,15 +39,21 @@ def face_and_upperbody_detect():
             while True:
                 ret, frame = video_capture.read()
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+                # Create a blurred copy of the frame
+                blurred_frame = cv2.GaussianBlur(frame, (25, 25), 0)
+
                 upper_bodies = upper_body_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
 
                 # Detect upper bodies
                 for (x, y, w, h) in upper_bodies:
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                    # Remove blur within the bounding box
+                    blurred_frame[y:y+h, x:x+w] = frame[y:y+h, x:x+w]
+                    cv2.rectangle(blurred_frame, (x, y), (x + w, y + h), (0, 255, 255), 2)
 
                 # Check to see if the user closed the window
                 if cv2.getWindowProperty(window_title, cv2.WND_PROP_AUTOSIZE) >= 0:
-                    cv2.imshow(window_title, frame)
+                    cv2.imshow(window_title, blurred_frame)
                 else:
                     break
 
