@@ -1,8 +1,10 @@
 import cv2
 import numpy as np
-
 background = cv2.resize(cv2.imread('./backgrounds/1.jpg'), (640, 480))
 face_cascade = cv2.cuda.CascadeClassifier_create('./haarcascades_cuda/haarcascade_frontalface_default.xml')
+filter_image = cv2.imread('./images/1.jpeg')
+
+gaussian_filter = cv2.cuda.createGaussianFilter(cv2.CV_8UC3, -1, (25,25), 5)
 image_gpu = cv2.cuda_GpuMat()   #declaring CUDA object into which we can pass images for processing with onboard GPU
 
 def gstreamer_pipeline(
