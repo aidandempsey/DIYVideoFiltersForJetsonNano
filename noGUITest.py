@@ -1,21 +1,17 @@
 import cv2
 
 background = cv2.resize(cv2.imread('./backgrounds/1.jpg'), (960, 540))
-
-#face_cascade = cv2.CascadeClassifier("./haarcascades_cuda/haarcascade_frontalface_default.xml")
 face_cascade = cv2.cuda.CascadeClassifier_create('./haarcascades_cuda/haarcascade_frontalface_default.xml')
-
-
 filter_image = cv2.imread('./images/1.jpeg')
 
 gaussian_filter = cv2.cuda.createGaussianFilter(cv2.CV_8UC3, -1, (25,25), 5)
 
 def gstreamer_pipeline(
-    capture_width=1280,
+    capture_width=1280, #lowered from 1920x1080 for improved speed
     capture_height=720,
     display_width=640,
     display_height=480,
-    framerate=60,
+    framerate=60,   #increased from 30 again to improve speed
     flip_method=6,
 ):
     return (
@@ -38,34 +34,18 @@ def gstreamer_pipeline(
 
 def backgroundBlur(frame):
 
-    image_gpu = cv2.cuda_GpuMat()
+    image_gpu = cv2.cuda_GpuMat()   #declaring CUDA object into which we can pass images for processing with onboard GPU
     image_gpu.upload(frame)
 
     gray_gpu = cv2.cuda.cvtColor(image_gpu, cv2.COLOR_BGR2GRAY)
-    gray = gray_gpu.download()
-    
-    # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     #faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
-    
-    
-    
-    faces_gpu = face_cascade.detectMultiScale(gray_gpu)
+       
+    faces_gpu = face_cascade.detectMultiScale(gray_gpu) #can't seem to alter parameters of this such as scale factor etc. 
     faces = faces_gpu.download()
-    print(faces)
-
-    if faces is not None:
-        for item in faces[0]:
-            (x,y,w,h) = item
-            print(x,y,w,h)
     
-
     blurred_image_gpu = gaussian_filter.apply(image_gpu)
-
     blurred_frame = blurred_image_gpu.download()
-
-    # blurred_frame = cv2.GaussianBlur(frame, (25, 25), 0)
-    # upper_bodies = upper_body_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(100, 100))
-
+    
     if faces is not None:
         for (x, y, w, h) in faces[0]:
             # Remove blur within the bounding box
@@ -75,7 +55,7 @@ def backgroundBlur(frame):
     return blurred_frame
 
 def show_camera():
-    window_title = "test"
+    window_title = "Aidan and Sean"
     print(gstreamer_pipeline())
 
     videoCapture = cv2.VideoCapture(gstreamer_pipeline(), cv2.CAP_GSTREAMER)
@@ -85,6 +65,7 @@ def show_camera():
 
             while True:
                 ret, frame = videoCapture.read()  # Read a frame from the camera
+                #logic here if doing multiple filters in single function
                 temp = backgroundBlur(frame)
 
                 if cv2.getWindowProperty(window_title, cv2.WND_PROP_AUTOSIZE) >= 0:
@@ -93,7 +74,7 @@ def show_camera():
                     break
                 keycode = cv2.waitKey(10) & 0xFF
 
-                if keycode ==27 or keycode == ord('q'):
+                if keycode == 27 or keycode == ord('q'): #allow user to quit gracefully
                     break
         finally:  
             videoCapture.release()
