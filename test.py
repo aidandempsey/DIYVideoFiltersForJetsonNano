@@ -39,7 +39,6 @@ def gstreamer_pipeline(
 
 def backgroundBlur(frame):
     
-    
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
     
@@ -56,35 +55,25 @@ def backgroundBlur(frame):
     # upper_bodies = upper_body_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(100, 100))
 
 
-    # Convert the images to NumPy arrays
-    frame = np.array(frame)
-    blurred_frame = np.array(blurred_frame)
-
-    face_coordinates = np.array([(x, y, x + w, y + h) for (x, y, w, h) in faces])
-
-    rois_blurred = blurred_frame[face_coordinates[:, 1]:face_coordinates[:, 3], face_coordinates[:, 0]:face_coordinates[:, 2]]
-
-    rois_frame = frame[face_coordinates[:, 1]:face_coordinates[:, 3], face_coordinates[:, 0]:face_coordinates[:, 2]]
-
-    np.copyto(rois_blurred, rois_frame)
-
-    for (x, y, x_w, y_h) in face_coordinates:
-        cv2.rectangle(blurred_frame, (x, y), (x_w, y_h), (0, 255, 255), 2)
-
-    # for (x, y, w, h) in faces:
-    #     # Remove blur within the bounding box
-    #     blurred_frame[y:y+h, x:x+w] = frame[y:y+h, x:x+w]
-    #     cv2.rectangle(blurred_frame, (x, y), (x + w, y + h), (0, 255, 255), 2)
+    for (x, y, w, h) in faces:
+        # Remove blur within the bounding box
+        blurred_frame[y:y+h, x:x+w] = frame[y:y+h, x:x+w]
+        cv2.rectangle(blurred_frame, (x, y), (x + w, y + h), (0, 255, 255), 2)
 
     return blurred_frame
 
 def backgroundReplacement(frame):
     #upper_body_cascade = cv2.CascadeClassifier("./haarcascades_cuda/haarcascade_mcs_upperbody.xml")
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    
-    upper_bodies = upper_body_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
 
-    for (x, y, w, h) in upper_bodies:
+    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+
+    
+    
+    
+     #upper_bodies = upper_body_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+
+    for (x, y, w, h) in faces:
         # Remove blur within the bounding box
         background[y:y+h, x:x+w] = frame[y:y+h, x:x+w]
         cv2.rectangle(background, (x, y), (x + w, y + h), (0, 255, 255), 2)
