@@ -49,31 +49,30 @@ def backgroundBlur(frame):
     if faces is not None:
         for (x, y, w, h) in faces[0]:
             # Remove blur within the bounding box
-            center_coordinates = x + w // 2, y + h // 2
-            radius = round(w / 1.5) 
 
-            mask = np.zeros_like(frame)
+            center_coordinates = x + w // 2, y + h // 2
+            radius = round(w / 1.4) 
+
+            #adding circular region to mask (for face)
+            mask = np.zeros_like(frame)         
             cv2.circle(mask, center_coordinates, radius, (255, 255, 255), -1)
 
-            rect_x, rect_y, rect_w, rect_h = center_coordinates[0] - 75, center_coordinates[1] + radius + 10, 150, 80 #adjust as needed
-            rect_mask = np.zeros_like(frame)
-            cv2.rectangle(rect_mask, (rect_x, rect_y), (rect_x + rect_w, rect_y + rect_h), (255, 255, 255), thickness=-1)
+            #adding rectangular region to mask (for shoulders & neck)
+            rect_x, rect_y, rect_w, rect_h = center_coordinates[0] - round(1.2*w), center_coordinates[1] - round(0.2*y)+ radius, round(2.4*w), 10*h #adjust as needed
+            cv2.rectangle(mask, (rect_x, rect_y), (rect_x + rect_w, rect_y + rect_h), (255, 255, 255), thickness=-1)
 
-            combined = cv2.bitwise_or(mask, rect_mask)
+            cv2.imshow("test", mask)
 
-            region = cv2.bitwise_and(frame, combined)
+            #isolating person from input frame
+            region = cv2.bitwise_and(frame, mask)
 
-            inverse_mask = cv2.bitwise_not(combined)
-
+            #creating hole in blurred frame into which we fit unblurred person
+            inverse_mask = cv2.bitwise_not(mask)
             destination_image = cv2.bitwise_and(blurred_frame, inverse_mask)
-
-            result = cv2.add(destination_image, region)
-
-            blurred_frame = result
-
+            blurred_frame = cv2.add(destination_image, region)
 
     return blurred_frame
-    # return result
+
 
 def show_camera():
     window_title = "Aidan and Sean"
