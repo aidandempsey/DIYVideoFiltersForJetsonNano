@@ -1,6 +1,7 @@
 import cv2
 import tkinter as tk
 from PIL import Image, ImageTk
+import numpy as np
 
 def gstreamer_pipeline(
     capture_width=1920,
@@ -8,7 +9,7 @@ def gstreamer_pipeline(
     display_width=960,
     display_height=540,
     framerate=30,
-    flip_method=6,
+    flip_method=2,
 ):
     return (
         "nvarguscamerasrc ! "
@@ -45,53 +46,69 @@ class VideoProcessor:
         self.canvas.pack()
 
         # Buttons
-        self.create_button("Normal", self.normal)
-        self.create_button("Background blur", self.blur_background)
-        self.create_button("Background replacement", self.replace_background)
-        self.create_button("Face distortion", self.distort_face)
-        self.create_button("Face filter", self.filter_face)
-        self.create_button("Custom", self.custom)
+        self.blur_button = tk.Button(master, text="Background blur", command=self.blur_background)
+        self.blur_button.pack(side=tk.LEFT)
+
+        self.replace_button = tk.Button(master, text="Background replacement", command=self.replace_background)
+        self.replace_button.pack(side=tk.LEFT)
+
+        self.distort_button = tk.Button(master, text="Face distortion", command=self.distort_face)
+        self.distort_button.pack(side=tk.LEFT)
+
+        self.filter_button = tk.Button(master, text="Face filter", command=self.filter_face)
+        self.filter_button.pack(side=tk.LEFT)
+
+        self.custom_button = tk.Button(master, text="Custom", command=self.custom)
+        self.custom_button.pack(side=tk.LEFT)
 
         # Initialize variables
         self.is_paused = False
         self.update()
         self.master.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-    def create_button(self, text, command):
-        button = tk.Button(self.master, text=text, command=command)
-        button.pack(side=tk.LEFT)
-
     def on_closing(self):
         self.video_capture.release()
         self.master.destroy()
 
-    def process_frame(self, frame, effect_function):
-        ret, processed_frame = effect_function(frame)
+    def blur_background(self):
+        ret, frame = self.video_capture.read()
         if ret:
-            self.display_frame(processed_frame)
+            # Apply blur
+            blurred_frame = cv2.GaussianBlur(frame, (15, 15), 0)
+            self.display_frame(blurred_frame)
 
-    def normal(self, frame):
-        return True, frame
+    def replace_background(self):
+        ret, frame = self.video_capture.read()
+        if ret:
+            # Apply replace
+            replaced_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            self.display_frame(replaced_frame, cmap='gray')
 
-    def blur_background(self, frame):
-        # Implement background blur effect
-        return True, frame
+    def distort_face(self):
+        ret, frame = self.video_capture.read()
+        if ret:
+            # Apply distortion
+            rows, cols, _ = frame.shape
+            distorted_frame = frame.copy()
+            for i in range(rows):
+                distorted_frame[i] = frame[(i + 50) % rows]
+            self.display_frame(distorted_frame)
 
-    def replace_background(self, frame):
-        # Implement background replacement effect
-        return True, frame
+    def filter_face(self):
+        ret, frame = self.video_capture.read()
+        if ret:
+            # Apply filter
+            gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            edges = cv2.Canny(gray_frame, 50, 150)
+            self.display_frame(edges, cmap='gray')
 
-    def distort_face(self, frame):
-        # Implement face distortion effect
-        return True, frame
+    def custom(self):
+        ret, frame = self.video_capture.read()
+        if ret:
 
-    def filter_face(self, frame):
-        # Implement face filter effect
-        return True, frame
 
-    def custom(self, frame):
-        # Implement custom effect
-        return True, frame
+            custom_frame = frame
+            self.display_frame(custom_frame)
 
     def display_frame(self, frame, cmap=None):
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -103,12 +120,14 @@ class VideoProcessor:
         if not self.is_paused:
             ret, frame = self.video_capture.read()
             if ret:
-                # Apply the selected effect to the frame
-                self.process_frame(frame, self.active_effect)
+                self.display_frame(frame)
         self.master.after(10, self.update)
 
-if __name__ == "__main__":
+def main():
     root = tk.Tk()
     app = VideoProcessor(root)
     root.mainloop()
+
+if __name__ == "__main__":
+    main()
 

@@ -6,13 +6,17 @@ import numpy as np
 
 current_filter = "Normal"  # Set the initial filter state to "Normal"
 filters = []
+upper_body_cascade = cv2.CascadeClassifier("./haarcascades_cuda/haarcascade_mcs_upperbody.xml")
+background = cv2.resize(cv2.imread('./backgrounds/1.jpg'), (960, 540))
+face_cascade = cv2.CascadeClassifier("./haarcascades_cuda/haarcascade_frontalface_default.xml")
+filter_image = cv2.imread('./images/1.jpeg')
 
 def gstreamer_pipeline(
-    capture_width=1920,
-    capture_height=1080,
-    display_width=960,
-    display_height=540,
-    framerate=30,
+    capture_width=1280,
+    capture_height=720,
+    display_width=640,
+    display_height=480,
+    framerate=60,
     flip_method=6,
 ):
     return (
@@ -34,10 +38,10 @@ def gstreamer_pipeline(
     )
 
 def backgroundBlur(frame):
-    upper_body_cascade = cv2.CascadeClassifier("./haarcascades_cuda/haarcascade_mcs_upperbody.xml")
+    
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     blurred_frame = cv2.GaussianBlur(frame, (25, 25), 0)
-    upper_bodies = upper_body_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+    upper_bodies = upper_body_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(100, 100))
 
     for (x, y, w, h) in upper_bodies:
         # Remove blur within the bounding box
@@ -47,9 +51,9 @@ def backgroundBlur(frame):
     return blurred_frame
 
 def backgroundReplacement(frame):
-    upper_body_cascade = cv2.CascadeClassifier("./haarcascades_cuda/haarcascade_mcs_upperbody.xml")
+    #upper_body_cascade = cv2.CascadeClassifier("./haarcascades_cuda/haarcascade_mcs_upperbody.xml")
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    background = cv2.resize(cv2.imread('./backgrounds/1.jpg'), (960, 540))
+    
     upper_bodies = upper_body_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
 
     for (x, y, w, h) in upper_bodies:
@@ -59,7 +63,7 @@ def backgroundReplacement(frame):
     return background
 
 def faceDistortion(frame):
-    face_cascade = cv2.CascadeClassifier("./haarcascades_cuda/haarcascade_frontalface_default.xml")
+    
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
 
@@ -69,10 +73,11 @@ def faceDistortion(frame):
 
     return frame
 
+
 def faceFilter(frame):
-    face_cascade = cv2.CascadeClassifier("./haarcascades_cuda/haarcascade_frontalface_default.xml")
+    #face_cascade = cv2.CascadeClassifier("./haarcascades_cuda/haarcascade_frontalface_default.xml")
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    filter_image =cv2.imread('./images/1.jpeg')
+    filter_image = filter_image #trying to avoid imread every time
     faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
 
     for (x, y, w, h) in faces:
