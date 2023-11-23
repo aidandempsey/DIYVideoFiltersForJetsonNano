@@ -49,27 +49,28 @@ def backgroundBlur(frame):
     if faces is not None:
         for (x, y, w, h) in faces[0]:
             # Remove blur within the bounding box
-            center_coordinates = x + w //2, y + h // 2
-            radius = w // 2
+            center_coordinates = x + w // 2, y + h // 2
+            radius = round(w / 1.5) 
 
             mask = np.zeros_like(frame)
             cv2.circle(mask, center_coordinates, radius, (255, 255, 255), -1)
 
-            circular_region = cv2.bitwise_and(frame, mask)
+            rect_x, rect_y, rect_w, rect_h = center_coordinates[0] - 75, center_coordinates[1] + radius + 10, 150, 80 #adjust as needed
+            rect_mask = np.zeros_like(frame)
+            cv2.rectangle(rect_mask, (rect_x, rect_y), (rect_x + rect_w, rect_y + rect_h), (255, 255, 255), thickness=-1)
 
-            inverse_mask = cv2.bitwise_not(mask)
+            combined = cv2.bitwise_or(mask, rect_mask)
+
+            region = cv2.bitwise_and(frame, combined)
+
+            inverse_mask = cv2.bitwise_not(combined)
 
             destination_image = cv2.bitwise_and(blurred_frame, inverse_mask)
 
-            result = cv2.add(destination_image, circular_region)
+            result = cv2.add(destination_image, region)
 
             blurred_frame = result
 
-            # blurred_frame
-            # cv2.circle(blurred_frame, center_coordinates, radius, (0, 255, 255), 2)
-
-            # blurred_frame[y:y+h, x:x+w] = frame[y:y+h, x:x+w]
-            # cv2.rectangle(blurred_frame, (x, y), (x + w, y + h), (0, 255, 255), 2)
 
     return blurred_frame
     # return result
