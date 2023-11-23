@@ -6,6 +6,8 @@ face_cascade = cv2.cuda.CascadeClassifier_create('./haarcascades_cuda/haarcascad
 filter_image = cv2.imread('./images/1.jpeg')
 
 gaussian_filter = cv2.cuda.createGaussianFilter(cv2.CV_8UC3, -1, (25,25), 5)
+image_gpu = cv2.cuda_GpuMat()   #declaring CUDA object into which we can pass images for processing with onboard GPU
+
 
 def gstreamer_pipeline(
     capture_width=1280, #lowered from 1920x1080 for improved speed
@@ -34,22 +36,19 @@ def gstreamer_pipeline(
     )
 
 def backgroundBlur(frame):
-    result = None
-    image_gpu = cv2.cuda_GpuMat()   #declaring CUDA object into which we can pass images for processing with onboard GPU
-    image_gpu.upload(frame)
+    
+    image_gpu.upload(frame)                             #move frame to onboard GPU for processing
     blurred_image_gpu = gaussian_filter.apply(image_gpu)
     blurred_frame = blurred_image_gpu.download()
 
     gray_gpu = cv2.cuda.cvtColor(image_gpu, cv2.COLOR_BGR2GRAY)
 
-    #faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
-    faces_gpu = face_cascade.detectMultiScale(gray_gpu) #can't seem to alter parameters of this such as scale factor etc. 
+    faces_gpu = face_cascade.detectMultiScale(gray_gpu) 
     faces = faces_gpu.download()
     
     if faces is not None:
         for (x, y, w, h) in faces[0]:
-            # Remove blur within the bounding box
-
+            # Creating bounding box with which to remove correct region from blurred frame and add in un-blurred person to output
             center_coordinates = x + w // 2, y + h // 2
             radius = round(w / 1.4) 
 
@@ -61,14 +60,14 @@ def backgroundBlur(frame):
             rect_x, rect_y, rect_w, rect_h = center_coordinates[0] - round(1.2*w), center_coordinates[1] - round(0.2*y)+ radius, round(2.4*w), 10*h #adjust as needed
             cv2.rectangle(mask, (rect_x, rect_y), (rect_x + rect_w, rect_y + rect_h), (255, 255, 255), thickness=-1)
 
-            cv2.imshow("test", mask)
+            # cv2.imshow("Person mask", mask)  #for adjustment in debugging
 
             #isolating person from input frame
-            region = cv2.bitwise_and(frame, mask)
+            region = cv2.cuda.bitwise_and(frame, mask)
 
             #creating hole in blurred frame into which we fit unblurred person
-            inverse_mask = cv2.bitwise_not(mask)
-            destination_image = cv2.bitwise_and(blurred_frame, inverse_mask)
+            inverse_mask = cv2.cuda.bitwise_not(mask)
+            destination_image = cv2.cuda.bitwise_and(blurred_frame, inverse_mask)
             blurred_frame = cv2.add(destination_image, region)
 
     return blurred_frame
