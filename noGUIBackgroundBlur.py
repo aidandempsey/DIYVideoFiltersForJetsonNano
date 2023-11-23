@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 
 background = cv2.resize(cv2.imread('./backgrounds/1.jpg'), (960, 540))
 face_cascade = cv2.cuda.CascadeClassifier_create('./haarcascades_cuda/haarcascade_frontalface_default.xml')
@@ -33,26 +34,45 @@ def gstreamer_pipeline(
     )
 
 def backgroundBlur(frame):
-
+    result = None
     image_gpu = cv2.cuda_GpuMat()   #declaring CUDA object into which we can pass images for processing with onboard GPU
     image_gpu.upload(frame)
-
-    gray_gpu = cv2.cuda.cvtColor(image_gpu, cv2.COLOR_BGR2GRAY)
-    #faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
-       
-    faces_gpu = face_cascade.detectMultiScale(gray_gpu) #can't seem to alter parameters of this such as scale factor etc. 
-    faces = faces_gpu.download()
-    
     blurred_image_gpu = gaussian_filter.apply(image_gpu)
     blurred_frame = blurred_image_gpu.download()
+
+    gray_gpu = cv2.cuda.cvtColor(image_gpu, cv2.COLOR_BGR2GRAY)
+
+    #faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+    faces_gpu = face_cascade.detectMultiScale(gray_gpu) #can't seem to alter parameters of this such as scale factor etc. 
+    faces = faces_gpu.download()
     
     if faces is not None:
         for (x, y, w, h) in faces[0]:
             # Remove blur within the bounding box
-            blurred_frame[y:y+h, x:x+w] = frame[y:y+h, x:x+w]
-            cv2.rectangle(blurred_frame, (x, y), (x + w, y + h), (0, 255, 255), 2)
+            center_coordinates = x + w //2, y + h // 2
+            radius = w // 2
+
+            mask = np.zeros_like(frame)
+            cv2.circle(mask, center_coordinates, radius, (255, 255, 255), -1)
+
+            circular_region = cv2.bitwise_and(frame, mask)
+
+            inverse_mask = cv2.bitwise_not(mask)
+
+            destination_image = cv2.bitwise_and(blurred_frame, inverse_mask)
+
+            result = cv2.add(destination_image, circular_region)
+
+            blurred_frame = result
+
+            # blurred_frame
+            # cv2.circle(blurred_frame, center_coordinates, radius, (0, 255, 255), 2)
+
+            # blurred_frame[y:y+h, x:x+w] = frame[y:y+h, x:x+w]
+            # cv2.rectangle(blurred_frame, (x, y), (x + w, y + h), (0, 255, 255), 2)
 
     return blurred_frame
+    # return result
 
 def show_camera():
     window_title = "Aidan and Sean"
@@ -66,10 +86,12 @@ def show_camera():
             while True:
                 ret, frame = videoCapture.read()  # Read a frame from the camera
                 #logic here if doing multiple filters in single function
-                temp = backgroundBlur(frame)
+                processedFrame = backgroundBlur(frame)
+
+                
 
                 if cv2.getWindowProperty(window_title, cv2.WND_PROP_AUTOSIZE) >= 0:
-                    cv2.imshow(window_title, temp)
+                    cv2.imshow(window_title, processedFrame)
                 else:
                     break
                 keycode = cv2.waitKey(10) & 0xFF
