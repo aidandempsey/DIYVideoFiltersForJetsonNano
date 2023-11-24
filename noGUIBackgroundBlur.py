@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 
-background = cv2.resize(cv2.imread('./backgrounds/1.jpg'), (960, 540))
 face_cascade = cv2.cuda.CascadeClassifier_create('./haarcascades_cuda/haarcascade_frontalface_default.xml')
 filter_image = cv2.imread('./images/1.jpeg')
 
@@ -67,8 +66,8 @@ def backgroundBlur(frame):
 
             #creating hole in blurred frame into which we fit unblurred person
             inverse_mask = cv2.cuda.bitwise_not(mask)
-            destination_image = cv2.cuda.bitwise_and(blurred_frame, inverse_mask)
-            blurred_frame = cv2.add(destination_image, region)
+            blurred_frame_with_hole = cv2.cuda.bitwise_and(blurred_frame, inverse_mask)
+            blurred_frame = cv2.add(blurred_frame_with_hole, region)
 
     return blurred_frame
 

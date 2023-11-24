@@ -63,7 +63,6 @@ def backgroundBlur(frame):
     return blurred_frame
 
 def backgroundReplacement(frame):
-    #upper_body_cascade = cv2.CascadeClassifier("./haarcascades_cuda/haarcascade_mcs_upperbody.xml")
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
