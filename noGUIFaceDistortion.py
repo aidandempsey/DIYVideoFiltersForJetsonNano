@@ -45,36 +45,42 @@ def faceDistort(frame):
 
     #faces = faces_gpu.download()
     eyes = eye_gpu.download()
+
+    
+
     if eyes is not None:
-        for (x, y, w, h) in eyes[0]:
-            cv2.rectangle(distorted_face, (x,y), (x+w, y+h), (0,255,0), 2)
+        eyes = sorted(eyes[0], key=lambda x: x[2] * x[3], reverse = True)
+        for i in range(min(2, len(eyes))):
+            (x, y, w, h) = eyes[i]
 
-    # if faces is not None:
-    #     for (x, y, w, h) in faces[0]:
-    #         print("eh")
-            # center_coordinates = x + w // 2, y + h // 2
-            # radius = round(w / 1.4) 
-
-            # #adding circular region to mask (for face)
-            # mask = np.zeros_like(frame)         
-            # cv2.circle(mask, center_coordinates, radius, (255, 255, 255), -1)
-
-            # #adding rectangular region to mask (for shoulders & neck)
-            # rect_x, rect_y, rect_w, rect_h = center_coordinates[0] - round(1.2*w), center_coordinates[1] - round(0.2*y)+ radius, round(2.4*w), 10*h #adjust as needed
-            # cv2.rectangle(mask, (rect_x, rect_y), (rect_x + rect_w, rect_y + rect_h), (255, 255, 255), thickness=-1)
-
-            # # cv2.imshow("Person mask", mask)  #for adjustment in debugging
-
-            # #isolating person from input frame
-            ## region = cv2.cuda.bitwise_and(frame, mask)
-
-            # inverse_mask = cv2.cuda.bitwise_not(mask)
-            # backgroundCopy_with_hole = cv2.cuda.bitwise_and(backgroundCopy, inverse_mask)
-            # faceDistort = cv2.add(backgroundCopy_with_hole, region)
+            # original_points = np.array([[x,y], [x+w, y], [x, y+h], [x+w, y+h]], dtype=np.float32)
+            # warped_points = np.array([[x+4,y+7], [x+w+6, y+8], [x+3, y+h+9], [x+w+15, y+h-17]], dtype=np.float32)
             
-            # # backgroundCopy[y:y+h, x:x+w] = frame[y:y+h, x:x+w]
-            # # cv2.rectangle(backgroundCopy, (x, y), (x + w, y + h), (0, 255, 255), 2)
+            # M = cv2.getPerspectiveTransform(original_points, warped_points)
 
+            # #if works, can it be done in GPU?
+            # warped_img = cv2.warpPerspective(frame, M, (frame.shape[1], frame.shape[0]))
+            
+            # distorted_face = warped_img
+            # #cv2.rectangle(distorted_face, (x,y), (x+w, y+h), (0,255,0), 2)
+
+            roi = frame[y:y+h, x:x+w]
+
+            # Define the stretching parameters
+            stretch_factor_x = 1.5
+            stretch_factor_y = 0.8
+
+            # Apply the affine transformation to the ROI
+            rows, cols, _ = roi.shape
+            pts_original = np.float32([[0, 0], [cols, 0], [0, rows]])
+            pts_stretched = np.float32([[0, 0], [int(cols * stretch_factor_x), 0], [0, int(rows * stretch_factor_y)]])
+            M = cv2.getAffineTransform(pts_original, pts_stretched)
+            stretched_roi = cv2.warpAffine(roi, M, (int(cols * stretch_factor_x), int(rows * stretch_factor_y)))
+
+            # Replace the original ROI with the stretched ROI in the image
+            frame[y:y+h, x:x+w] = stretched_roi
+            distorted_face = frame
+    
     return distorted_face
 
 def show_camera():
