@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+import math
+
 
 face_cascade = cv2.cuda.CascadeClassifier_create('./haarcascades_cuda/haarcascade_frontalface_default.xml')
 eye_cascade = cv2.cuda.CascadeClassifier_create('./haarcascades_cuda/haarcascade_eye.xml')
@@ -35,53 +37,41 @@ def gstreamer_pipeline(
 
 
 def faceDistort(frame):
-    distorted_face = frame
     image_gpu.upload(frame)
-
     gray_gpu = cv2.cuda.cvtColor(image_gpu, cv2.COLOR_BGR2GRAY)
-
-    #faces_gpu = face_cascade.detectMultiScale(gray_gpu)
-    eye_gpu = eye_cascade.detectMultiScale(gray_gpu) 
-
-    #faces = faces_gpu.download()
-    eyes = eye_gpu.download()
-
+    faces_gpu = face_cascade.detectMultiScale(gray_gpu)
+    faces = faces_gpu.download()
+   
+    img = frame
     
+    if faces is not None:
+        
+        res = np.zeros((img.shape[0],img.shape[1],3),np.uint8)
 
-    if eyes is not None:
-        eyes = sorted(eyes[0], key=lambda x: x[2] * x[3], reverse = True)
-        for i in range(min(2, len(eyes))):
-            (x, y, w, h) = eyes[i]
+        radius =200 # radius of filter
+        angel=-90 * math.pi/180 # angel
 
-            # original_points = np.array([[x,y], [x+w, y], [x, y+h], [x+w, y+h]], dtype=np.float32)
-            # warped_points = np.array([[x+4,y+7], [x+w+6, y+8], [x+3, y+h+9], [x+w+15, y+h-17]], dtype=np.float32)
-            
-            # M = cv2.getPerspectiveTransform(original_points, warped_points)
+        centerx=(float((img.shape[1]-1))/2)
+        centery=(float((img.shape[0]-1))/2)
 
-            # #if works, can it be done in GPU?
-            # warped_img = cv2.warpPerspective(frame, M, (frame.shape[1], frame.shape[0]))
-            
-            # distorted_face = warped_img
-            # #cv2.rectangle(distorted_face, (x,y), (x+w, y+h), (0,255,0), 2)
+        # Move the definition of y and x inside the loop
+        y, x = np.ogrid[:img.shape[0], :img.shape[1]]
+        px, py = np.meshgrid(np.arange(img.shape[1]) - centerx, np.arange(img.shape[0]) - centery)
 
-            roi = frame[y:y+h, x:x+w]
+        dis = np.sqrt(px**2 + py**2)
+        mask = dis <= radius
 
-            # Define the stretching parameters
-            stretch_factor_x = 1.5
-            stretch_factor_y = 0.8
+        a = angel * (1 - dis[mask] / radius)
 
-            # Apply the affine transformation to the ROI
-            rows, cols, _ = roi.shape
-            pts_original = np.float32([[0, 0], [cols, 0], [0, rows]])
-            pts_stretched = np.float32([[0, 0], [int(cols * stretch_factor_x), 0], [0, int(rows * stretch_factor_y)]])
-            M = cv2.getAffineTransform(pts_original, pts_stretched)
-            stretched_roi = cv2.warpAffine(roi, M, (int(cols * stretch_factor_x), int(rows * stretch_factor_y)))
+        px[mask] = px[mask] * np.cos(a) - py[mask] * np.sin(a)
+        py[mask] = px[mask] * np.sin(a) + py[mask] * np.cos(a)
 
-            # Replace the original ROI with the stretched ROI in the image
-            frame[y:y+h, x:x+w] = stretched_roi
-            distorted_face = frame
-    
-    return distorted_face
+        newx = np.clip(centerx + px, 0, img.shape[1]-1).astype(int)
+        newy = np.clip(centery + py, 0, img.shape[0]-1).astype(int)
+
+        res[y,x] = img[newy,newx]
+        frame = res
+    return frame
 
 def show_camera():
     window_title = "Aidan and Sean"
@@ -96,9 +86,7 @@ def show_camera():
                 ret, frame = videoCapture.read()  # Read a frame from the camera
                
                 processedFrame = faceDistort(frame)
-
                 
-
                 if cv2.getWindowProperty(window_title, cv2.WND_PROP_AUTOSIZE) >= 0:
                     cv2.imshow(window_title, processedFrame)
                 else:

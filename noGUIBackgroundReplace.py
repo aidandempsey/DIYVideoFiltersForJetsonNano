@@ -63,9 +63,6 @@ def backgroundReplacement(frame):
             backgroundCopy_with_hole = cv2.cuda.bitwise_and(backgroundCopy, inverse_mask)
             backgroundCopy = cv2.add(backgroundCopy_with_hole, region)
             
-            # backgroundCopy[y:y+h, x:x+w] = frame[y:y+h, x:x+w]
-            # cv2.rectangle(backgroundCopy, (x, y), (x + w, y + h), (0, 255, 255), 2)
-
     return backgroundCopy
 
 def show_camera():
