@@ -36,7 +36,7 @@ def gstreamer_pipeline(
     )
 
 
-def faceDistort(frame):
+def faceDistortion(frame):
     image_gpu.upload(frame)
     gray_gpu = cv2.cuda.cvtColor(image_gpu, cv2.COLOR_BGR2GRAY)
     faces_gpu = face_cascade.detectMultiScale(gray_gpu)

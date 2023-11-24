@@ -39,7 +39,7 @@ def gstreamer_pipeline(
         )
     )
 
-def backgroundBlur(frame):
+def ourIdea(frame):
     # Get the dimensions of the frame
     height, width = frame.shape[:2]
 
@@ -86,7 +86,7 @@ def show_camera():
             while True:
                 ret, frame = videoCapture.read()  # Read a frame from the camera
                 #logic here if doing multiple filters in single function
-                processedFrame = backgroundBlur(frame)
+                processedFrame = ourIdea(frame)
 
                 
 
