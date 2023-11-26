@@ -224,7 +224,7 @@ def create_gui_and_capture_video():
         ("Replace Background", background_replacement),
         ("Distort Face", face_distortion),
         ("Filter Face", face_filter),
-        ("Surprise", object_detection)
+        ("Object Detection", object_detection)
     ]
 
     # Create buttons for each filter with a larger font size
