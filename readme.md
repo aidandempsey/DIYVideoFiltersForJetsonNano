@@ -11,7 +11,7 @@ We use a GStreamer pipeline string to take video input from the camera module, t
 
 ### Facial Detection
 
-To perform facial recognition, we utilized [haarcascade_frontalface_default.xml](./haarcascades_cuda//haarcascade_frontalface_default.xml). This XML file represents a pre-trained Haar Cascade Classifier model designed for detecting faces, with this specific implementation of the Haar Cascade Classifier optimized for CUDA. For more detailed facial recognition, we made use of [haarcascade_eye.xml](./haarcascades_cuda//haarcascade_eye.xml), also optimized for CUDA.
+To perform facial recognition, we utilized [haarcascade_frontalface_default.xml](./haarcascades_cuda/haarcascade_frontalface_default.xml). This XML file represents a pre-trained Haar Cascade Classifier model designed for detecting faces, with this specific implementation of the Haar Cascade Classifier optimized for CUDA. For more detailed facial recognition, we made use of [haarcascade_eye.xml](./haarcascades_cuda/haarcascade_eye.xml), also optimized for CUDA.
 
 ### Object Detection
 To perform object detection, we took a deep neural network approach. The file [deploy.prototxt](./models/deploy.prototxt) defines the neural network's architecture, whereas the [mobilenet_iter_73000.caffemodel](./models/mobilenet_iter_73000.caffemodel) file contains the pre-trained weights. This specific model is based on “MobileNet”, a lightweight convolutional neural network architecture. 
@@ -24,7 +24,7 @@ The graphical user interface (GUI) was developed with Tkinter, a library that fa
 
 ### Filters
 #### [Background Blur](./noGUIBackgroundBlur.py)
-First, we first make a copy of the frame to serve as the background. The original frame is then converted into grayscale and a Haar cascade is applied to identify any faces. For each detected face, a circular mask is created to isolate the face from the rest of the frame. This mask is positioned on the centre of the face and its diameter is determined by the dimensions of the detected face’s bounding box. An additional rectangular mask is added to cover the upper body which is combined with the circle to create a unified mask. Using a bitwise AND operation, the person can then be isolated from the frame.
+First, we make a copy of the frame to serve as the background. The original frame is then converted into grayscale and a Haar cascade is applied to identify any faces. For each detected face, a circular mask is created to isolate the face from the rest of the frame. This mask is positioned on the centre of the face and its diameter is determined by the dimensions of the detected face’s bounding box. An additional rectangular mask is added to cover the upper body which is combined with the circle to create a unified mask. Using a bitwise AND operation, the person can then be isolated from the frame.
 
 ## Testing and Results:
 
