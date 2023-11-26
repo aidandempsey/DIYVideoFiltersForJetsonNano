@@ -36,7 +36,7 @@ def gstreamer_pipeline(
     )
 
 
-def faceDistortion(frame):
+def face_distort(frame):
     image_gpu.upload(frame)
     gray_gpu = cv2.cuda.cvtColor(image_gpu, cv2.COLOR_BGR2GRAY)
     faces_gpu = face_cascade.detectMultiScale(gray_gpu)
@@ -77,18 +77,18 @@ def show_camera():
     window_title = "Aidan and Sean"
     print(gstreamer_pipeline())
 
-    videoCapture = cv2.VideoCapture(gstreamer_pipeline(), cv2.CAP_GSTREAMER)
-    if videoCapture.isOpened():
+    video_capture = cv2.VideoCapture(gstreamer_pipeline(), cv2.CAP_GSTREAMER)
+    if video_capture.isOpened():
         try:
             window_handle = cv2.namedWindow(window_title, cv2.WINDOW_AUTOSIZE)
 
             while True:
-                ret, frame = videoCapture.read()  # Read a frame from the camera
+                _, frame = video_capture.read()  # Read a frame from the camera
                
-                processedFrame = faceDistort(frame)
+                processed_frame = face_distort(frame)
                 
                 if cv2.getWindowProperty(window_title, cv2.WND_PROP_AUTOSIZE) >= 0:
-                    cv2.imshow(window_title, processedFrame)
+                    cv2.imshow(window_title, processed_frame)
                 else:
                     break
                 keycode = cv2.waitKey(10) & 0xFF
@@ -96,7 +96,7 @@ def show_camera():
                 if keycode == 27 or keycode == ord('q'): #allow user to quit gracefully
                     break
         finally:  
-            videoCapture.release()
+            video_capture.release()
             cv2.destroyAllWindows()
     else:
         print("Error")

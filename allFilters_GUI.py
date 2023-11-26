@@ -52,7 +52,7 @@ def gstreamer_pipeline(
         )
     )
 
-def backgroundBlur(frame):
+def background_blur(frame):
     
     image_gpu.upload(frame)                             #move frame to onboard GPU for processing
     blurred_image_gpu = gaussian_filter.apply(image_gpu)
@@ -89,8 +89,8 @@ def backgroundBlur(frame):
 
     return blurred_frame
 
-def backgroundReplacement(frame):
-    backgroundCopy = background.copy()
+def background_replacement(frame):
+    background_copy = background.copy()
     image_gpu.upload(frame)
 
     gray_gpu = cv2.cuda.cvtColor(image_gpu, cv2.COLOR_BGR2GRAY)
@@ -118,12 +118,12 @@ def backgroundReplacement(frame):
             region = cv2.cuda.bitwise_and(frame, mask)
 
             inverse_mask = cv2.cuda.bitwise_not(mask)
-            backgroundCopy_with_hole = cv2.cuda.bitwise_and(backgroundCopy, inverse_mask)
-            backgroundCopy = cv2.add(backgroundCopy_with_hole, region)
+            background_copy_with_hole = cv2.cuda.bitwise_and(background_copy, inverse_mask)
+            background_copy = cv2.add(background_copy_with_hole, region)
             
-    return backgroundCopy
+    return background_copy
 
-def faceDistortion(frame):
+def face_distortion(frame):
     image_gpu.upload(frame)
     gray_gpu = cv2.cuda.cvtColor(image_gpu, cv2.COLOR_BGR2GRAY)
     faces_gpu = face_cascade.detectMultiScale(gray_gpu)
@@ -161,7 +161,7 @@ def faceDistortion(frame):
     return frame
 
 
-def faceFilter(frame):
+def face_filter(frame):
     temp_filter_image = filter_image.copy()
 
     image_gpu.upload(frame)                             #move frame to onboard GPU for processing
@@ -178,7 +178,7 @@ def faceFilter(frame):
 
     return frame
 
-def ourIdea(frame):
+def object_detection(frame):
     # Get the dimensions of the frame
     height, width = frame.shape[:2]
 
@@ -201,20 +201,20 @@ def ourIdea(frame):
             confidence_score = f"Confidence: {confidence:.2f}"
 
             box = detections[0, 0, i, 3:7] * np.array([width, height, width, height])
-            (startX, startY, endX, endY) = box.astype("int")
+            (start_x, start_y, end_x, end_y) = box.astype("int")
 
             # Draw the bounding box
-            cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 255, 0), 2)
+            cv2.rectangle(frame, (start_x, start_y), (end_x, end_y), (0, 255, 0), 2)
 
             # Display class label and confidence score
-            y = startY - 15 if startY - 15 > 15 else startY + 15
-            cv2.putText(frame, class_label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-            cv2.putText(frame, confidence_score, (startX, y + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+            y = start_y - 15 if start_y - 15 > 15 else start_y + 15
+            cv2.putText(frame, class_label, (start_x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+            cv2.putText(frame, confidence_score, (start_x, y + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
     return frame
 
 
-def removeFilters(videoInput):
-    return videoInput
+def remove_filters(video_input):
+    return video_input
 
 def on_button_click(filter_name):
     global current_filter
@@ -234,8 +234,8 @@ def update_button_appearance():
             button.config(bg="#555555", fg="#19c37d")
 
 # Function to create the GUI and capture video
-def createGuiAndCaptureVideo():
-    videoCapture = cv2.VideoCapture(gstreamer_pipeline(), cv2.CAP_GSTREAMER)
+def create_gui_and_capture_video():
+    video_capture = cv2.VideoCapture(gstreamer_pipeline(), cv2.CAP_GSTREAMER)
 
     # Original canvas dimensions
     width = 960
@@ -255,8 +255,8 @@ def createGuiAndCaptureVideo():
     new_button_frame_height = int(90)
 
     # Create a row of buttons with an increased font size
-    buttonFrame = tk.Frame(root)
-    buttonFrame.pack(side=tk.BOTTOM, pady=new_button_frame_height // 2) 
+    button_frame = tk.Frame(root)
+    button_frame.pack(side=tk.BOTTOM, pady=new_button_frame_height // 2) 
 
     global button_dict  # Make button_dict global
     button_dict = {}  # A dictionary to store button references
@@ -264,17 +264,17 @@ def createGuiAndCaptureVideo():
     # Filter names and corresponding functions
     global filters  # Make filters global
     filters = [
-        ("Normal", removeFilters),
-        ("Blur Background", backgroundBlur),
-        ("Replace Background", backgroundReplacement),
-        ("Distort Face", faceDistortion),
-        ("Filter Face", faceFilter),
-        ("Surprise", ourIdea)
+        ("Normal", remove_filters),
+        ("Blur Background", background_blur),
+        ("Replace Background", background_replacement),
+        ("Distort Face", face_distortion),
+        ("Filter Face", face_filter),
+        ("Surprise", object_detection)
     ]
 
     # Create buttons for each filter with a larger font size
     for filter_name, filter_func in filters:
-        button = Button(buttonFrame, text=filter_name, command=lambda name=filter_name: on_button_click(name), bg="#555555", fg="#19c37d", font=("Helvetica", 16))
+        button = Button(button_frame, text=filter_name, command=lambda name=filter_name: on_button_click(name), bg="#555555", fg="#19c37d", font=("Helvetica", 16))
         button.pack(side=tk.LEFT)
         button_dict[filter_name] = button
 
@@ -282,7 +282,7 @@ def createGuiAndCaptureVideo():
     update_button_appearance()
 
     while True:
-        ret, frame = videoCapture.read()  # Read a frame from the camera
+        ret, frame = video_capture.read()  # Read a frame from the camera
         if not ret:
             break
 
@@ -301,7 +301,7 @@ def createGuiAndCaptureVideo():
         canvas.create_image(0, 0, anchor=tk.NW, image=img)
         root.update()
 
-    videoCapture.release()
+    video_capture.release()
 
 # Start capturing and displaying video with filter selection
-createGuiAndCaptureVideo()
+create_gui_and_capture_video()

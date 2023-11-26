@@ -31,8 +31,8 @@ def gstreamer_pipeline(
         )
     )
 
-def backgroundReplacement(frame):
-    backgroundCopy = background.copy()
+def background_replacement(frame):
+    background_copy = background.copy()
     image_gpu.upload(frame)
 
     gray_gpu = cv2.cuda.cvtColor(image_gpu, cv2.COLOR_BGR2GRAY)
@@ -60,29 +60,29 @@ def backgroundReplacement(frame):
             region = cv2.cuda.bitwise_and(frame, mask)
 
             inverse_mask = cv2.cuda.bitwise_not(mask)
-            backgroundCopy_with_hole = cv2.cuda.bitwise_and(backgroundCopy, inverse_mask)
-            backgroundCopy = cv2.add(backgroundCopy_with_hole, region)
+            background_copy_with_hole = cv2.cuda.bitwise_and(background_copy, inverse_mask)
+            background_copy = cv2.add(background_copy_with_hole, region)
             
-    return backgroundCopy
+    return background_copy
 
 def show_camera():
     window_title = "Aidan and Sean"
     print(gstreamer_pipeline())
 
-    videoCapture = cv2.VideoCapture(gstreamer_pipeline(), cv2.CAP_GSTREAMER)
-    if videoCapture.isOpened():
+    video_capture = cv2.VideoCapture(gstreamer_pipeline(), cv2.CAP_GSTREAMER)
+    if video_capture.isOpened():
         try:
             window_handle = cv2.namedWindow(window_title, cv2.WINDOW_AUTOSIZE)
 
             while True:
-                ret, frame = videoCapture.read()  # Read a frame from the camera
+                _, frame = video_capture.read()  # Read a frame from the camera
                
-                processedFrame = backgroundReplacement(frame)
+                processed_frame = background_replacement(frame)
 
                 
 
                 if cv2.getWindowProperty(window_title, cv2.WND_PROP_AUTOSIZE) >= 0:
-                    cv2.imshow(window_title, processedFrame)
+                    cv2.imshow(window_title, processed_frame)
                 else:
                     break
                 keycode = cv2.waitKey(10) & 0xFF
@@ -90,7 +90,7 @@ def show_camera():
                 if keycode == 27 or keycode == ord('q'): #allow user to quit gracefully
                     break
         finally:  
-            videoCapture.release()
+            video_capture.release()
             cv2.destroyAllWindows()
     else:
         print("Error")

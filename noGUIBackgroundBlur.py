@@ -7,7 +7,6 @@ filter_image = cv2.imread('./images/filter.jpeg')
 gaussian_filter = cv2.cuda.createGaussianFilter(cv2.CV_8UC3, -1, (25,25), 5)
 image_gpu = cv2.cuda_GpuMat()   #declaring CUDA object into which we can pass images for processing with onboard GPU
 
-
 def gstreamer_pipeline(
     capture_width=1280, #lowered from 1920x1080 for improved speed
     capture_height=720,
@@ -34,7 +33,7 @@ def gstreamer_pipeline(
         )
     )
 
-def backgroundBlur(frame):
+def background_blur(frame):
     
     image_gpu.upload(frame)                             #move frame to onboard GPU for processing
     blurred_image_gpu = gaussian_filter.apply(image_gpu)
@@ -76,20 +75,20 @@ def show_camera():
     window_title = "Aidan and Sean"
     print(gstreamer_pipeline())
 
-    videoCapture = cv2.VideoCapture(gstreamer_pipeline(), cv2.CAP_GSTREAMER)
-    if videoCapture.isOpened():
+    video_capture = cv2.VideoCapture(gstreamer_pipeline(), cv2.CAP_GSTREAMER)
+    if video_capture.isOpened():
         try:
             window_handle = cv2.namedWindow(window_title, cv2.WINDOW_AUTOSIZE)
 
             while True:
-                ret, frame = videoCapture.read()  # Read a frame from the camera
+                _, frame = video_capture.read()  # Read a frame from the camera
                 #logic here if doing multiple filters in single function
-                processedFrame = backgroundBlur(frame)
+                processed_frame = background_blur(frame)
 
                 
 
                 if cv2.getWindowProperty(window_title, cv2.WND_PROP_AUTOSIZE) >= 0:
-                    cv2.imshow(window_title, processedFrame)
+                    cv2.imshow(window_title, processed_frame)
                 else:
                     break
                 keycode = cv2.waitKey(10) & 0xFF
@@ -97,7 +96,7 @@ def show_camera():
                 if keycode == 27 or keycode == ord('q'): #allow user to quit gracefully
                     break
         finally:  
-            videoCapture.release()
+            video_capture.release()
             cv2.destroyAllWindows()
     else:
         print("Error")

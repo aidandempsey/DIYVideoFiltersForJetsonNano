@@ -39,7 +39,7 @@ def gstreamer_pipeline(
         )
     )
 
-def ourIdea(frame):
+def object_detection(frame):
     # Get the dimensions of the frame
     height, width = frame.shape[:2]
 
@@ -62,15 +62,15 @@ def ourIdea(frame):
             confidence_score = f"Confidence: {confidence:.2f}"
 
             box = detections[0, 0, i, 3:7] * np.array([width, height, width, height])
-            (startX, startY, endX, endY) = box.astype("int")
+            (start_x, start_y, end_x, end_y) = box.astype("int")
 
             # Draw the bounding box
-            cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 255, 0), 2)
+            cv2.rectangle(frame, (start_x, start_y), (end_x, end_y), (0, 255, 0), 2)
 
             # Display class label and confidence score
-            y = startY - 15 if startY - 15 > 15 else startY + 15
-            cv2.putText(frame, class_label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-            cv2.putText(frame, confidence_score, (startX, y + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+            y = start_y - 15 if start_y - 15 > 15 else start_y + 15
+            cv2.putText(frame, class_label, (start_x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+            cv2.putText(frame, confidence_score, (start_x, y + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
     return frame
 
 
@@ -78,20 +78,20 @@ def show_camera():
     window_title = "Aidan and Sean"
     print(gstreamer_pipeline())
 
-    videoCapture = cv2.VideoCapture(gstreamer_pipeline(), cv2.CAP_GSTREAMER)
-    if videoCapture.isOpened():
+    video_capture = cv2.VideoCapture(gstreamer_pipeline(), cv2.CAP_GSTREAMER)
+    if video_capture.isOpened():
         try:
             window_handle = cv2.namedWindow(window_title, cv2.WINDOW_AUTOSIZE)
 
             while True:
-                ret, frame = videoCapture.read()  # Read a frame from the camera
+                _, frame = video_capture.read()  # Read a frame from the camera
                 #logic here if doing multiple filters in single function
-                processedFrame = ourIdea(frame)
+                processed_frame = object_detection(frame)
 
                 
 
                 if cv2.getWindowProperty(window_title, cv2.WND_PROP_AUTOSIZE) >= 0:
-                    cv2.imshow(window_title, processedFrame)
+                    cv2.imshow(window_title, processed_frame)
                 else:
                     break
                 keycode = cv2.waitKey(10) & 0xFF
@@ -99,7 +99,7 @@ def show_camera():
                 if keycode == 27 or keycode == ord('q'): #allow user to quit gracefully
                     break
         finally:  
-            videoCapture.release()
+            video_capture.release()
             cv2.destroyAllWindows()
     else:
         print("Error")
