@@ -1,6 +1,6 @@
 # EE551 – DIY Filters on Jetson Nano Project
-- Sean Breen - 19410202
-- Aidan Dempsey – 19458984
+- [Sean Breen](https://github.com/seanbreen01)
+- [Aidan Dempsey](https://github.com/aidandempsey)
 
 ## Introduction/Problem Statement:
 The aim of this assignment is to develop a set of real-time video processing filters to be implemented in Python on an Nvidia Jetson Nano camera feed. We will use traditional image processing techniques such as masking and bitwise pixel operations, while also integrating neural network methodologies to enhance our filters.
@@ -23,7 +23,7 @@ Each filter is optimized to capitalize on the Jetson Nano’s GPU capabilities, 
 The graphical user interface (GUI) was developed with Tkinter, a library that facilitates the creation of windows, frames, buttons, and other elements. Our specific GUI contained a panel of buttons that could be clicked to change the video processing effects in real-time. Ultimately, the idea of the GUI was scrapped as it created huge bottlenecks in terms of performance.
 
 ### Filters
-#### Background Blur
+#### [Background Blur](./noGUIBackgroundBlur.py)
 First, we first make a copy of the frame to serve as the background. The original frame is then converted into grayscale and a Haar cascade is applied to identify any faces. For each detected face, a circular mask is created to isolate the face from the rest of the frame. This mask is positioned on the centre of the face and its diameter is determined by the dimensions of the detected face’s bounding box. An additional rectangular mask is added to cover the upper body which is combined with the circle to create a unified mask. Using a bitwise AND operation, the person can then be isolated from the frame.
 
 ## Testing and Results:

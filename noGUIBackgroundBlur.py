@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 face_cascade = cv2.cuda.CascadeClassifier_create('./haarcascades_cuda/haarcascade_frontalface_default.xml')
-filter_image = cv2.imread('./images/1.jpeg')
+filter_image = cv2.imread('./images/filter.jpeg')
 
 gaussian_filter = cv2.cuda.createGaussianFilter(cv2.CV_8UC3, -1, (25,25), 5)
 image_gpu = cv2.cuda_GpuMat()   #declaring CUDA object into which we can pass images for processing with onboard GPU

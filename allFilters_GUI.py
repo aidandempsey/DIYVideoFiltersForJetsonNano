@@ -23,8 +23,8 @@ CLASSES = ('background',
            'motorbike', 'person', 'pottedplant',
            'sheep', 'sofa', 'train', 'tvmonitor')
 
-background = cv2.resize(cv2.imread('./backgrounds/1.jpg'), (640, 480))
-filter_image = cv2.imread('./images/1.jpeg')
+background = cv2.resize(cv2.imread("./images/background.jpg"), (640, 480))
+filter_image = cv2.imread('./images/filter.jpeg')
 
 def gstreamer_pipeline(
     capture_width=1280,
